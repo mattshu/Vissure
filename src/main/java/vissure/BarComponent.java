@@ -13,10 +13,15 @@ import javax.swing.JComponent;
 public class BarComponent extends JComponent {
 
 	public final int DEFAULT_BAR_SPACE = 1;
-	private final int DEFAULT_BAR_WIDTH = 2;
+	private final int DEFAULT_BAR_WIDTH = 1;
 	private final int DEFAULT_DELAY = 10;
-	private int delay = DEFAULT_DELAY;
+	
 	private ArrayList<Bar> bars = new ArrayList<Bar>();
+	private Timer timer = new Timer();
+	
+	private boolean isSorting = false;
+	private int delay = DEFAULT_DELAY;
+	private int iterator = 0;
 	
 	public void generateBars() {
 		clearBars();
@@ -33,8 +38,11 @@ public class BarComponent extends JComponent {
 	}
 	
 	private void stopSort() {
-		timer.cancel();
-		System.out.println("Timer cancelled.");
+		if (isSorting) {
+			timer.cancel();
+			isSorting = false;
+			System.out.println("Sort stopped; timer canceled");
+		}
 	}
 	
 	public void addBar(int height) {
@@ -49,47 +57,50 @@ public class BarComponent extends JComponent {
 		return delay;
 	}
 	
-	private Timer timer = new Timer("timer");
 	public void startSort(int delay) {
+		isSorting = true;
 		setDelay(delay);
 		timer.scheduleAtFixedRate(sortNextBarTask, 0, delay);
 	}
 	
 	public void setDelay(int delay) {
-		timer.cancel();
-		//if (timer.isRunning())
-			//timer.stop();
+		if (delay <= 0) delay = 1;
 		this.delay = delay;
-		//timer = new Timer(delay, sortNextBar());
+		if (isSorting) {
+			restartTimer();
+		}
 	}
 	
-	//private Date lastFired = Date.from(Instant.now());
-	private int iterator = bars.size() - 1;
+	private void restartTimer() {
+		timer.cancel();
+		timer = new Timer();
+		timer.scheduleAtFixedRate(sortNextBarTask,  0,  delay);
+	}
+	
 	private TimerTask sortNextBarTask = new TimerTask() {
 			public void run() {
-				//System.out.print("Timer fired! Delay: " + timer.getDelay());
-				//System.out.println(" | Time since last fire: " + TimeUnit.MILLISECONDS.convert(Date.from(Instant.now()).getTime() - lastFired.getTime(), TimeUnit.MILLISECONDS));
-				//lastFired = Date.from(Instant.now());
-				if (iterator <= 0) {
-					resetAllBarColors();
-					iterator = bars.size() - 1;
+				isSorting = true;
+				resetAllBarColors();
+				if (iterator >= bars.size() - 1) {
+					iterator = 0;
 					if (isSorted()) {
-						cancel();
+						timer.cancel();
 						markBarsCompleted();
+						isSorting = false;
 						return;
 					}
 				}
 				Bar currentBar = bars.get(iterator);
-				Bar nextBar = bars.get(iterator - 1);
+				Bar nextBar = bars.get(iterator + 1);
 				setBarColor(currentBar, Color.green);
-				if (currentBar.height < nextBar.height) {
+				if (currentBar.height > nextBar.height) {
 					setBarColor(nextBar, Color.red);
-					Collections.swap(bars, iterator,  iterator - 1);
+					Collections.swap(bars, iterator,  iterator + 1);
 				}
 				else {
 					setBarColor(currentBar, Color.black);
 				}
-				iterator--;
+				iterator++;
 				repaint();
 			}
 		};
@@ -138,7 +149,6 @@ public class BarComponent extends JComponent {
 			int height = bars.get(i).height;
 			g.setColor(color);
 			g.fillRect(mainX, Main.DEFAULT_SIZE.height - height, DEFAULT_BAR_WIDTH, height);
-			//g.fillOval(mainX, Main.DEFAULT_SIZE.height - height, DEFAULT_BAR_WIDTH, DEFAULT_BAR_WIDTH);
 		}
 	}
 }
