@@ -73,7 +73,7 @@ public class Main {
 		JButton clearButton = new JButton("Clear");
 		final JLabel editLabel = new JLabel("10ms delay");
 		final JSlider slider = new JSlider();
-		slider.setValue(10);
+		slider.setValue(barComponent.DEFAULT_DELAY);
 		slider.setMaximum(100);
 		slider.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
@@ -89,22 +89,16 @@ public class Main {
 		bottomPanel.add(editLabel);
 		testFrame.getContentPane().add(bottomPanel, BorderLayout.SOUTH);
 		generateButton.addActionListener(new ActionListener() { 
-			
 			public void actionPerformed(ActionEvent e) {
 				barComponent.generateBars();
-				barComponent.shuffleBars();
 			}
 		});
 		sortButton.addActionListener(new ActionListener() {
-			
 			public void actionPerformed(ActionEvent e) {
 				barComponent.startSort(slider.getValue());
-				System.out.println(barComponent.getDelay());
 			}
 		});
-		
 		clearButton.addActionListener(new ActionListener() {
-			
 			public void actionPerformed(ActionEvent e) {
 				barComponent.clearBars();
 			}
