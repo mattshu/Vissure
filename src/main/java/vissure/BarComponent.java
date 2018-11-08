@@ -1,6 +1,7 @@
 package vissure;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,9 +13,9 @@ public class BarComponent extends JComponent implements Runnable {
 
 	Thread runner;
 	
-	public final int DEFAULT_BAR_SPACE = 4;
+	public final int DEFAULT_BAR_SPACE = 3;
 	public final int DEFAULT_DELAY = 10;
-	private final int DEFAULT_BAR_WIDTH = 2;
+	private final int DEFAULT_BAR_WIDTH = 4;
 	
 	private ArrayList<Bar> bars = new ArrayList<Bar>();
 	
@@ -23,8 +24,11 @@ public class BarComponent extends JComponent implements Runnable {
 	
 	public void generateBars() {
 		clearBars();
-		for (int i = 1; i <= Main.DEFAULT_SIZE.getWidth() / DEFAULT_BAR_WIDTH / 2; i++)
-			addBar(i * 2);
+		Dimension mainSize = getSize();
+		for (int i = 0; i < mainSize.width; i += DEFAULT_BAR_WIDTH + DEFAULT_BAR_SPACE) {
+			double projectedHeight = ((i + 1) / mainSize.getWidth()) * mainSize.getHeight();
+			addBar((int)projectedHeight);
+		}
 		shuffleBars();
 		repaint();
 	}
@@ -76,7 +80,6 @@ public class BarComponent extends JComponent implements Runnable {
 		}
 	}
 	
-	@Override
 	public void run() {
 		while (!isSorted()) {
 			resetAllBarColors();
@@ -135,17 +138,14 @@ public class BarComponent extends JComponent implements Runnable {
 	@Override
 	protected void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		g.clearRect(0, 0, Main.DEFAULT_SIZE.width, Main.DEFAULT_SIZE.height);
+		g.clearRect(0, 0, getSize().width, getSize().height);
 		int mainX = 0;
-		for (int i = 0; i < bars.size(); i++, mainX += DEFAULT_BAR_SPACE) {
+		for (int i = 0; i < bars.size(); i++, mainX += DEFAULT_BAR_WIDTH + DEFAULT_BAR_SPACE) {
 			Color color = bars.get(i).color;
 			int height = bars.get(i).height;
 			g.setColor(color);
-			g.fillRect(mainX, Main.DEFAULT_SIZE.height - height, DEFAULT_BAR_WIDTH, height);
-			//System.out.println("Painting bar at (" + mainX + "," + (Main.DEFAULT_SIZE.height - height) + ") with (w,h): (" + DEFAULT_BAR_WIDTH + "," + height + ")");
+			g.fillRect(mainX, getSize().height - height, DEFAULT_BAR_WIDTH, height); // Draw bar
 		}
 	}
-
-
 }
 

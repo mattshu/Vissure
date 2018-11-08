@@ -17,19 +17,15 @@ import javax.swing.event.ChangeListener;
 
 public class Main {
 	
-	public final static Dimension DEFAULT_SIZE = new Dimension(520, 300);
-	public static int getDelayInMillis() { 
-		return slider.getValue();
-	}
+	public final static Dimension DEFAULT_SIZE = new Dimension(520, 400);
+	private final static JFrame barGraphFrame = new JFrame();
 	private final static JSlider slider = new JSlider();
 	private static BarComponent barComponent = new BarComponent();
 	public static void main(String[] args) {
-
-		final JFrame testFrame = new JFrame();
-		testFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		barGraphFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		barComponent.setPreferredSize(DEFAULT_SIZE);
-		testFrame.getContentPane().add(barComponent, BorderLayout.CENTER);
-		testFrame.addWindowListener(new WindowListener() {
+		barGraphFrame.getContentPane().add(barComponent, BorderLayout.CENTER);
+		barGraphFrame.addWindowListener(new WindowListener() {
 
 			public void windowActivated(WindowEvent arg0) {
 				// TODO Auto-generated method stub
@@ -87,7 +83,7 @@ public class Main {
 		bottomPanel.add(clearButton);
 		bottomPanel.add(slider);
 		bottomPanel.add(editLabel);
-		testFrame.getContentPane().add(bottomPanel, BorderLayout.SOUTH);
+		barGraphFrame.getContentPane().add(bottomPanel, BorderLayout.SOUTH);
 		generateButton.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) {
 				barComponent.generateBars();
@@ -104,8 +100,8 @@ public class Main {
 			}
 		});
 		
-		testFrame.pack();
-		testFrame.setVisible(true);
+		barGraphFrame.pack();
+		barGraphFrame.setVisible(true);
 	}
 	
 }
