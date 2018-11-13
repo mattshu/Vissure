@@ -26,7 +26,6 @@ public class BarComponent extends JComponent implements Runnable {
 	private JTextField barWidthText;
 	private JTextField barMarginText;
 	
-	// Is this the best way?
 	public BarComponent(JTextField barWidthText, JTextField barMarginText) {
 		this.barWidthText = barWidthText;
 		this.barMarginText = barMarginText;
