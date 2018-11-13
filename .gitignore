@@ -17,3 +17,4 @@ artifacts/
 # Maven
 log/
 target/ 
+*.class
