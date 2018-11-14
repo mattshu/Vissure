@@ -14,27 +14,27 @@ public class BarComponent extends JComponent implements Runnable {
 
 	Thread runner;
 	
-	public final static int DEFAULT_DELAY = 10;
-	public final static int DEFAULT_BAR_WIDTH = 2;
+	public final static double DEFAULT_DELAY = 10;
+	public final static int DEFAULT_BAR_WIDTH = 3;
 	public final static int DEFAULT_BAR_MARGIN = 1;
 	
 	private ArrayList<Bar> bars = new ArrayList<Bar>();
 	
-	private int delay = DEFAULT_DELAY;
-	private int iterator = 0;
+	private double delay = DEFAULT_DELAY;
 	
-	private JTextField barWidthText;
+	/*private JTextField barWidthText;
 	private JTextField barMarginText;
 	
 	public BarComponent(JTextField barWidthText, JTextField barMarginText) {
 		this.barWidthText = barWidthText;
 		this.barMarginText = barMarginText;
-	}
+	}*/
 	
 	public void generateBars() {
 		clearBars();
 		Dimension mainSize = getSize();
-		for (int i = 0; i < mainSize.width; i += getBarWidth() + getBarMargin()) {
+		for (int i = 0; i < mainSize.width; i += DEFAULT_BAR_WIDTH + DEFAULT_BAR_MARGIN) {
+		//for (int i = 0; i < mainSize.width; i += getBarWidth() + getBarMargin()) {
 			double projectedHeight = ((i + 1) / mainSize.getWidth()) * mainSize.getHeight();
 			addBar((int)projectedHeight);
 		}
@@ -45,7 +45,6 @@ public class BarComponent extends JComponent implements Runnable {
 	public void clearBars() {
 		stopSort();
 		bars.clear();
-		iterator = 0;
 		repaint();
 	}
 	
@@ -74,15 +73,11 @@ public class BarComponent extends JComponent implements Runnable {
 		}
 	}
 	
-	public void setDelay(int delay) {
+	public void setDelay(double delay) {
 		this.delay = delay;
 	}
 	
 	public void startSort() {
-		startSort(DEFAULT_DELAY);
-	}
-	
-	public void startSort(int delay) {
 		if (runner == null) {
 			runner = new Thread(this);
 			runner.start();
@@ -96,7 +91,7 @@ public class BarComponent extends JComponent implements Runnable {
 	public void run() {
 		while (!isSorted()) {
 			resetAllBarColors();
-			insertionSort();
+			selectionSort();
 		}
 		if (isSorted())
 			markBarsCompleted();
@@ -116,24 +111,44 @@ public class BarComponent extends JComponent implements Runnable {
 	private void selectionSort() {
 		int min = 0;
 		for (int i = 0; i < bars.size(); i++) {
+			bars.get(i).setColor(Color.green);
+			repaint();
+			sleep(delay);
 			min = i;
 			for (int j = i + 1; j < bars.size(); j++) {
-				if (bars.get(j).getHeight() < bars.get(min).getHeight())
+				bars.get(j).setColor(Color.yellow);
+				repaint();
+				sleep(delay);
+				if (bars.get(j).getHeight() < bars.get(min).getHeight()) {
 					min = j;
+				}
+				bars.get(j).setColor(Color.black);
+				repaint();
 			}
-			Collections.swap(bars, i, min);
-			sleep(delay);
+			bars.get(i).setColor(Color.red);
+			bars.get(min).setColor(Color.red);
 			repaint();
+			sleep(delay);
+			Collections.swap(bars, i, min);
+			repaint();
+			sleep(delay);
+			bars.get(i).setColor(Color.black);
+			bars.get(min).setColor(Color.black);
+			repaint();
+			sleep(delay);
+			resetAllBarColors();
+			//repaint();
 		}
 	}
 	
-	private void sleep(int time) {
+	private void sleep(double time) {
 		try {
-			if (time <= 0) {
-				Thread.sleep(0, 500);
-			}
+			if (time > 1)
+				Thread.sleep((int)time);
+			else if (time < 1.0 && time > 0)
+				java.util.concurrent.locks.LockSupport.parkNanos((int)(time * 1000000));
 			else
-				Thread.sleep(time);
+				Thread.sleep(0);
 		}
 		catch (InterruptedException ex) { /* Ignore */ }
 	}
@@ -161,31 +176,6 @@ public class BarComponent extends JComponent implements Runnable {
 		}
 	}
 	
-	private void stupidSort() {
-		int size = bars.size();
-	    while(iterator<(size-1))
-	    {
-	           if(bars.get(iterator).getHeight() > bars.get(iterator+1).getHeight())
-	          {
-	                Collections.swap(bars, iterator, iterator+1);
-	                iterator = 0;
-	          }
-	          else
-	         {
-	               iterator++;
-	         }
-               repaint();
-   			try {
-				if (delay <= 0) {
-					Thread.sleep(0, 7500);
-				}
-				else
-					Thread.sleep(delay);
-			}
-			catch (InterruptedException ex) { /* Ignore */ }
-	     }
-	}
-
 	private void markBarsCompleted() {
 		for (Bar bar : bars) {
 			bar.setColor(Color.green);
@@ -198,15 +188,17 @@ public class BarComponent extends JComponent implements Runnable {
 		super.paintComponent(g);
 		g.clearRect(0, 0, getSize().width, getSize().height);
 		int mainX = 0;
-		for (int i = 0; i < bars.size(); i++, mainX += getBarWidth() + getBarMargin()) {
+		for (int i = 0; i < bars.size(); i++, mainX += DEFAULT_BAR_WIDTH + DEFAULT_BAR_MARGIN) {
+		//for (int i = 0; i < bars.size(); i++, mainX += getBarWidth() + getBarMargin()) {
 			Color color = bars.get(i).getColor();
 			int height = bars.get(i).getHeight();
 			g.setColor(color);
-			g.fillRect(mainX, getSize().height - height, getBarWidth(), height); // Draw bar
+			g.fillRect(mainX, getSize().height - height, DEFAULT_BAR_WIDTH, height); // Draw bar
+			//g.fillRect(mainX, getSize().height - height, getBarWidth(), height); // Draw bar
 		}
 	}
 	
-	private int getBarWidth() {
+	/*private int getBarWidth() {
 		try {
 			String text = barWidthText.getText();
 			int width = Integer.parseInt(text);
@@ -234,6 +226,6 @@ public class BarComponent extends JComponent implements Runnable {
 			barMarginText.setText(Integer.toString(DEFAULT_BAR_MARGIN));
 			return DEFAULT_BAR_MARGIN;
 		}
-	}
+	}*/
 }
 

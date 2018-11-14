@@ -4,8 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
@@ -14,21 +12,20 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
-import javax.swing.JTextField;
-import javax.swing.event.CaretEvent;
-import javax.swing.event.CaretListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.event.DocumentEvent;
 
 public class Main {
 	
 	public final static Dimension DEFAULT_SIZE = new Dimension(620, 400);
 	private final static JFrame barGraphFrame = new JFrame();
-	private final static JTextField barWidthText = new JTextField(String.valueOf(BarComponent.DEFAULT_BAR_WIDTH));
-	private final static JTextField barMarginText = new JTextField(String.valueOf(BarComponent.DEFAULT_BAR_MARGIN));
-	private static BarComponent barComponent = new BarComponent(barWidthText, barMarginText);
-	public final static int getBarWidth() {
+	//private final static JTextField barWidthText = new JTextField(String.valueOf(BarComponent.DEFAULT_BAR_WIDTH));
+	//private final static JTextField barMarginText = new JTextField(String.valueOf(BarComponent.DEFAULT_BAR_MARGIN));
+	private final static JLabel sliderLabel = new JLabel("10 ms");
+	private final static JSlider slider = new JSlider();
+	private static BarComponent barComponent = new BarComponent();
+	//private static BarComponent barComponent = new BarComponent(barWidthText, barMarginText);
+	/*public final static int getBarWidth() {
 		int width = Integer.parseInt(barWidthText.getText());
 		if (width <= 0)
 			width = 1;
@@ -39,7 +36,7 @@ public class Main {
 		if (margin <= 0)
 			margin = 1;
 		return margin;
-	}
+	}*/
 	public static void main(String[] args) {
 		barGraphFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		barComponent.setPreferredSize(DEFAULT_SIZE);
@@ -82,7 +79,7 @@ public class Main {
 			}
 		});
 		final JPanel bottomPanel = new JPanel();
-		final JLabel barWidthLabel = new JLabel("Width:");
+		/*final JLabel barWidthLabel = new JLabel("Width:");
 		final JLabel barMarginLabel = new JLabel("Margin:");
 		barWidthText.addKeyListener(new KeyListener() {
 
@@ -121,29 +118,27 @@ public class Main {
 
 		});
 		barWidthText.setPreferredSize(new Dimension(24, 21));
-		barMarginText.setPreferredSize(new Dimension(24, 21));
+		barMarginText.setPreferredSize(new Dimension(24, 21));*/
 		JButton generateButton = new JButton("Generate");
 		JButton sortButton = new JButton("Sort");
 		JButton clearButton = new JButton("Clear");
-		final JLabel editLabel = new JLabel("10ms delay");
-		final JSlider slider = new JSlider();
-		slider.setValue(BarComponent.DEFAULT_DELAY);
-		slider.setMaximum(100);
+		slider.setMaximum(2000);
+		slider.setValue(1000);
 		slider.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
-				editLabel.setText(slider.getValue() + "ms delay");
-				barComponent.setDelay(slider.getValue());
+				double adjDelay = getAdjustedDelay(slider.getValue());
+				barComponent.setDelay(adjDelay);
 			}
 		});
-		bottomPanel.add(barWidthLabel);
+		/*bottomPanel.add(barWidthLabel);
 		bottomPanel.add(barWidthText);
 		bottomPanel.add(barMarginLabel);
-		bottomPanel.add(barMarginText);
+		bottomPanel.add(barMarginText);*/
 		bottomPanel.add(generateButton);
 		bottomPanel.add(sortButton);
 		bottomPanel.add(clearButton);
 		bottomPanel.add(slider);
-		bottomPanel.add(editLabel);
+		bottomPanel.add(sliderLabel);
 		barGraphFrame.getContentPane().add(bottomPanel, BorderLayout.SOUTH);
 		generateButton.addActionListener(new ActionListener() { 
 			public void actionPerformed(ActionEvent e) {
@@ -152,7 +147,7 @@ public class Main {
 		});
 		sortButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				barComponent.startSort(slider.getValue());
+				barComponent.startSort();
 			}
 		});
 		clearButton.addActionListener(new ActionListener() {
@@ -162,6 +157,22 @@ public class Main {
 		});
 		barGraphFrame.pack();
 		barGraphFrame.setVisible(true);
+	}
+	/* Scale:
+	   0.25ms|-------14ms--------100ms----------500ms-----------|2000ms
+              9.9<>10     30<>34      110<>120        550<>650
+	 */
+	private static double getAdjustedDelay(int sliderValue) {
+		double base = 4;
+		double g_delay = Math.pow(4, sliderValue / 2000.0 * Math.log(2 * 1000.0 * 10.0) / Math.log(base)) / 10.0;
+		if (sliderValue == 0) g_delay = 0;
+		if (g_delay > 10)
+			sliderLabel.setText(String.format("%.0f ms", g_delay));
+		else if (g_delay > 1)
+			sliderLabel.setText(String.format("%.1f ms", g_delay));
+		else
+			sliderLabel.setText(String.format("%.2f ms",  g_delay));
+		return g_delay;
 	}
 	
 }
