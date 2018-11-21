@@ -6,11 +6,17 @@ import java.awt.EventQueue;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import javax.swing.JSlider;
+import javax.swing.JLabel;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
 
 public class MainWindow extends JFrame {
 
@@ -40,12 +46,6 @@ public class MainWindow extends JFrame {
 	JPanel panelLeft = new JPanel();
 	JPanel panelRight = new JPanel();
 	BarComponent barComponent = new BarComponent();
-	public void generateBars() {
-		barComponent.generateBars();
-	}
-	public void startSort() {
-		barComponent.startSort();
-	}
 	public MainWindow() {
 		setType(Type.UTILITY);
 		setTitle("Vissure");
@@ -66,26 +66,117 @@ public class MainWindow extends JFrame {
 		panelLeft.setLayout(null);
 		panel.setLayout(null);
 		panelRight.setLayout(null);
-		
-		JButton btnGenerate = new JButton("Generate");
-		JButton btnSort = new JButton("Sort");
-		btnGenerate.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				generateBars();
-			}
-		});
-		btnSort.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				startSort();
-			}
-		});
-		btnGenerate.setBounds(10, 39, 89, 23);
-		btnSort.setBounds(109, 39, 89, 23);
-		panelRight.add(btnGenerate);
-		panelRight.add(btnSort);
 		barComponent.setBorder(new EmptyBorder(10, 10, 10, 10));
 		barComponent.setBounds(10, 10, 584, 489);
 		barComponent.setPreferredSize(new Dimension(584, 489));
+		barComponent.addMouseListener(new MouseListener() {
+
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mouseExited(MouseEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void mousePressed(MouseEvent arg0) {
+				int i = 0;
+				for (Bar bar : barComponent.getBars()) {
+					System.out.println("Index: " + i + " | Height: " + bar.getHeight() + " | Width: " + bar.getWidth());
+					i++;
+				}
+				
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+		});
 		panelLeft.add(barComponent);
+		JButton btnGenerate = new JButton("Generate");
+		btnGenerate.setBounds(10, 226, 102, 23);
+		btnGenerate.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				barComponent.generateBars();
+			}
+		});
+		panelRight.add(btnGenerate);
+		JButton btnStop = new JButton("Stop");
+		btnStop.setBounds(128, 11, 102, 23);
+		btnStop.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				// TODO
+			}
+		});
+		panelRight.add(btnStop);
+		JButton btnClear = new JButton("Clear");
+		btnClear.setBounds(128, 45, 102, 23);
+		btnClear.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				barComponent.clearBars();
+			}
+		});
+		panelRight.add(btnClear);
+		JButton btnRun = new JButton("Run");
+		btnRun.setBounds(10, 11, 102, 23);
+		btnRun.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				barComponent.startSort();
+			}
+		});
+		panelRight.add(btnRun);
+		JLabel lblDelay = new JLabel("Delay:");
+		lblDelay.setBounds(20, 110, 46, 14);
+		panelRight.add(lblDelay);
+		JLabel lblDelayText = new JLabel("600ms"); // TODO hard coded
+		lblDelayText.setBounds(94, 110, 75, 14);
+		panelRight.add(lblDelayText);
+		JSlider sliderDelay = new JSlider();
+		sliderDelay.setBounds(10, 79, 220, 26);
+		sliderDelay.setMaximum(BarComponent.MAX_SLIDER_DELAY_TICKS);
+		sliderDelay.setValue(BarComponent.DEFAULT_SLIDER_DELAY_TICKS);
+		sliderDelay.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent arg0) {
+				int sliderTicks = sliderDelay.getValue();
+				 // Magically spans the delay slider from 0.1ms to 2s
+				double delay = sliderTicks == 0 ? 0 : Math.pow(4, (double)sliderTicks / BarComponent.MAX_SLIDER_DELAY_TICKS * Math.log(BarComponent.MAX_SLIDER_DELAY_TICKS * 10.0) / Math.log(4)) / 10.0;
+				barComponent.setDelay(delay);
+				lblDelayText.setText(String.format(delay > 10 ? "%.0f ms" : delay > 1 ? "%.1f ms" : "%.2f ms", delay));
+			}
+		});
+		panelRight.add(sliderDelay);
+		JLabel lblArraySize = new JLabel("Array size:");
+		lblArraySize.setBounds(20, 297, 64, 14);
+		panelRight.add(lblArraySize);
+		JLabel lblArraySizeText = new JLabel(String.valueOf(BarComponent.DEFAULT_ARRAY_SIZE));
+		lblArraySizeText.setBounds(94, 297, 46, 14);
+		panelRight.add(lblArraySizeText);
+		JSlider sliderArraySize = new JSlider();
+		sliderArraySize.setBounds(10, 260, 220, 26);
+		sliderArraySize.setMaximum(500);
+		sliderArraySize.setValue(BarComponent.DEFAULT_ARRAY_SIZE);
+		sliderArraySize.addChangeListener(new ChangeListener() {
+			public void stateChanged(ChangeEvent arg0) {
+				int newSize = sliderArraySize.getValue();
+				lblArraySizeText.setText(String.valueOf(newSize));
+				barComponent.setArraySize(newSize);
+			}
+		});
+		panelRight.add(sliderArraySize);
+
 	}
 }

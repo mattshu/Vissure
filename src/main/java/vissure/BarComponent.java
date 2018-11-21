@@ -3,49 +3,47 @@ package vissure;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
 
 import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JSlider;
 
 public class BarComponent extends JComponent implements Runnable {
 
 	Thread runner;
 	
-	public final static int DEFAULT_DELAY = 1500;
-	public final static int DEFAULT_BAR_WIDTH = 5;
-	public final static int DEFAULT_BAR_MARGIN = 1;
+	public final static double DEFAULT_DELAY = 600.0; // ms
+	public final static int MAX_SLIDER_DELAY_TICKS = 2000; // JSlider ticks
+	public static final int DEFAULT_SLIDER_DELAY_TICKS = 1757; // JSlider ticks
+	private double delay = DEFAULT_DELAY;
+	
+	public final static int MAX_ARRAY_SIZE = 500;
+	public final static int DEFAULT_ARRAY_SIZE = 15;
+	public final static int BAR_MARGIN = 2;
+
+	
+	private int arraySize = DEFAULT_ARRAY_SIZE;
 	
 	private ArrayList<Bar> bars = new ArrayList<Bar>();
 	
-	private int getBarCount() {
-		return bars.size();
+	public void setArraySize(int newSize) {
+		if (newSize <= MAX_ARRAY_SIZE && newSize > 0)
+			arraySize = newSize;
+		generateBars();
 	}
-	private Bar getBar(int index) {
-		return bars.get(index);
-	}
-	private double delay = getAdjustedDelay(DEFAULT_DELAY);
-	private double getAdjustedDelay(int value) {
-		double base = 4;
-		double g_delay = Math.pow(4, value / 2000.0 * Math.log(2 * 1000.0 * 10.0) / Math.log(base)) / 10.0;
-		if (value == 0) g_delay = 0;
-		//if (g_delay > 10)
-			//sliderLabel.setText(String.format("%.0f ms", g_delay));
-		//else if (g_delay > 1)
-			//sliderLabel.setText(String.format("%.1f ms", g_delay));
-		//else
-			//sliderLabel.setText(String.format("%.2f ms",  g_delay));
-		return g_delay;
-	}
-	
+
 	public void generateBars() {
 		clearBars();
-		Dimension mainSize = getParent().getSize();
-		for (int i = 1; i <= mainSize.width; i += DEFAULT_BAR_WIDTH + DEFAULT_BAR_MARGIN) {
-		//for (int i = 0; i < mainSize.width; i += getBarWidth() + getBarMargin()) {
-			double projectedHeight = ((i + 1) / mainSize.getWidth()) * mainSize.getHeight();
-			addBar((int)projectedHeight);
+		Dimension size = getPreferredSize();
+		for (int i = 1; i <= arraySize; i++) {
+			double width = (getPreferredSize().width / arraySize) - BAR_MARGIN;
+			double height = (i / (double)arraySize) * size.getHeight();
+			addBar(width, height);
 		}
 		shuffleBars();
 		repaint();
@@ -57,12 +55,12 @@ public class BarComponent extends JComponent implements Runnable {
 		repaint();
 	}
 	
-	private void addBar(int height) {
-		addBar(height, Color.white);
+	private void addBar(double width, double height) {
+		addBar(width, height, Color.white);
 	}
 	
-	private void addBar(int height, Color color) {
-		bars.add(new Bar(height, color));
+	private void addBar(double width, double height, Color color) {
+		bars.add(new Bar(width, height, color));
 	}
 	
 	private void shuffleBars() {
@@ -82,6 +80,9 @@ public class BarComponent extends JComponent implements Runnable {
 		}
 	}
 	
+	public ArrayList<Bar> getBars() {
+		return bars;
+	}
 	public void setDelay(double delay) {
 		this.delay = delay;
 	}
@@ -99,21 +100,21 @@ public class BarComponent extends JComponent implements Runnable {
 	
 	public void run() {
 		while (!isSorted()) {
-			//resetAllBarColors();
-			selectionSort();
+			resetAllBarColors();
+			insertionSort();
 		}
 		if (isSorted())
 			markBarsCompleted();
 	}
 
 	private void insertionSort() {
-		for (int i = 1; i < bars.size(); i++) {
+		int size = bars.size();
+		for (int i = 1; i < size; i++) {
 			int j = i;
-			while (j > 0 && bars.get(j - 1).getHeight() > bars.get(j).getHeight()) {
-				swapBars(j, j - 1);
+			while (j > 0) {
+				if (bars.get(j - 1).getHeight() > bars.get(j).getHeight())
+					swapBars(j, j - 1);
 				j--;
-				sleep(delay);
-				repaint();
 			}
 		}
 	}
@@ -121,34 +122,36 @@ public class BarComponent extends JComponent implements Runnable {
 	private void selectionSort() {
 		int min = 0;
 		for (int i = 0; i < bars.size(); i++) {
-			colorizeBar(Color.cyan, i);
+			colorizeBar(Color.green, i);
 			min = i;
 			for (int j = i + 1; j < bars.size(); j++) {
-				colorizeBars(Color.red, j, i);
-				//colorizeBar(Color.red, i);
+				colorizeBar(Color.red, j);
+				colorizeBar(Color.red, min);
 				if (bars.get(j).getHeight() < bars.get(min).getHeight()) {
-					swapBars(i, min);
+					colorizeBar(Color.cyan, j);
+					colorizeBar(Color.white, min);
+					swapBars(min, j);
 					min = j;
 				}
-				else
-					colorizeBars(Color.white, j, i);
+				else {
+					colorizeBar(Color.cyan, j);
+					colorizeBar(Color.white, j);
+				}
 			}
-			//swapBars(i, min);
-			colorizeBar(Color.white, i);
-			//resetAllBarColors();
+			resetAllBarColors();
 		}
 	}
 	
 	private void swapBars(int x, int y) {
-		colorizeBars(Color.red, x, y);
-		//colorizeBar(y, Color.red);
+		//Color oldColorX = bars.get(x).getColor();
+		//Color oldColorY = bars.get(y).getColor();
+		colorizeBar(Color.red, x);
+		colorizeBar(Color.red, y);
 		Collections.swap(bars, x, y);
 		repaint();
 		sleep(delay);
-		//colorizeBar(x, Color.white);
 		colorizeBars(Color.white, x, y);
-		//repaint();
-		//sleep(delay);
+		//colorizeBar(Color.white, y);
 	}
 	
 	private void colorizeBars(Color color, Bar... bars) {
@@ -167,7 +170,7 @@ public class BarComponent extends JComponent implements Runnable {
 	
 	private void colorizeBars(Color color, int... barIndexes) {
 		for (int index : barIndexes) {
-			this.bars.get(index).setColor(color);
+			bars.get(index).setColor(color);
 		}
 		repaint();
 		sleep(delay);
@@ -221,17 +224,25 @@ public class BarComponent extends JComponent implements Runnable {
 	
 	@Override
 	protected void paintComponent(Graphics g) {
-		super.paintComponent(g);
-		int size = getBarCount();
-		if (size <= 0) return;
-		g.setColor(Color.BLACK);
-		g.fillRect(0, 0, getSize().width, getSize().height);
-		int mainX = 0;
-		for (int i = 0; i < size; i++, mainX += BarComponent.DEFAULT_BAR_WIDTH + BarComponent.DEFAULT_BAR_MARGIN) {
-			Color color = getBar(i).getColor();
-			int height = getBar(i).getHeight();
-			g.setColor(color);
-			g.fillRect(mainX, getSize().height - height, BarComponent.DEFAULT_BAR_WIDTH, height); // Draw bar
+		Graphics2D g2 = (Graphics2D) g;
+		super.paintComponent(g2);
+		if (bars.size() <= 0) return;
+		g2.setColor(Color.BLACK);
+		g2.fillRect(0, 0, getPreferredSize().width, getPreferredSize().height);
+		double x = 0, margin = BAR_MARGIN;
+		for (int i = 0; i < arraySize; i++) {
+			Bar bar = bars.get(i);
+			Color color = bars.get(i).getColor();
+			double width = bar.getWidth();
+			double height = bar.getHeight();
+			double y = getPreferredSize().height - height;
+			g2.setColor(color);
+			Rectangle2D rectBar = new Rectangle2D.Double(x, y, width, height);
+			g2.fill(rectBar);
+			//g.fillRect(x, y, width, height);
+			if (width <= margin)
+				margin = 0;
+			x += width + (margin / 2);
 		}
 	}
 }
