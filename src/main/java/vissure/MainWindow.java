@@ -167,7 +167,8 @@ public class MainWindow extends JFrame {
 		panelRight.add(lblArraySizeText);
 		JSlider sliderArraySize = new JSlider();
 		sliderArraySize.setBounds(10, 260, 220, 26);
-		sliderArraySize.setMaximum(500);
+		sliderArraySize.setMinimum(2);
+		sliderArraySize.setMaximum(250);
 		sliderArraySize.setValue(BarComponent.DEFAULT_ARRAY_SIZE);
 		sliderArraySize.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent arg0) {
@@ -177,6 +178,7 @@ public class MainWindow extends JFrame {
 			}
 		});
 		panelRight.add(sliderArraySize);
-
+		// Initialize bars
+		barComponent.generateBars();
 	}
 }

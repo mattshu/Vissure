@@ -17,13 +17,13 @@ public class BarComponent extends JComponent implements Runnable {
 
 	Thread runner;
 	
-	public final static double DEFAULT_DELAY = 600.0; // ms
+	public final static double DEFAULT_DELAY = 400.0; // ms
 	public final static int MAX_SLIDER_DELAY_TICKS = 2000; // JSlider ticks
-	public static final int DEFAULT_SLIDER_DELAY_TICKS = 1757; // JSlider ticks
+	public static final int DEFAULT_SLIDER_DELAY_TICKS = 1057; // JSlider ticks
 	private double delay = DEFAULT_DELAY;
 	
-	public final static int MAX_ARRAY_SIZE = 500;
-	public final static int DEFAULT_ARRAY_SIZE = 15;
+	public final static int MAX_ARRAY_SIZE = 250;
+	public final static int DEFAULT_ARRAY_SIZE = 100;
 	public final static int BAR_MARGIN = 2;
 
 	
@@ -99,62 +99,162 @@ public class BarComponent extends JComponent implements Runnable {
 	}
 	
 	public void run() {
+		int last_sorted = 0;
 		while (!isSorted()) {
-			resetAllBarColors();
-			insertionSort();
+			//resetBarColors();
+			//last_sorted = bubbleSort(last_sorted);
+			selectionSort();
+			//last_sorted = insertionSort(last_sorted);
 		}
 		if (isSorted())
 			markBarsCompleted();
 	}
-
-	private void insertionSort() {
-		int size = bars.size();
-		for (int i = 1; i < size; i++) {
-			int j = i;
-			while (j > 0) {
-				if (bars.get(j - 1).getHeight() > bars.get(j).getHeight())
-					swapBars(j, j - 1);
-				j--;
+	
+	private void merge (int[] arr, int l, int m, int r) {
+		int i, j, k;
+		int n1 = m - l + 1;
+		int n2 = r - m;
+		
+		// tmp arrays
+		int[] L = new int[n1];
+		int[] R = new int[n2];
+		
+		// copy to tmp arrays
+		for (i = 0; i < n1; i++)
+			L[i] = arr[l + i];
+		for (j = 0; j < n2; j++)
+			R[j] = arr[m + 1 + j];
+		
+		// merge tmp arrays back into arr[l..r]
+		i = 0; 
+		j = 0; 
+		k = l;
+		while (i < n1 && j < n2) {
+			if (L[i] <= R[j]) {
+				arr[k] = L[i];
+				i++;
 			}
+			else {
+				arr[k] = R[j];
+				j++;
+			}
+			k++;
+		}
+		
+		// copy remaining L[] if any
+		while (i < n1) {
+			arr[k] = L[i];
+			i++;
+			k++;
+		}
+		// copy remaining R[] if any
+		while (j < n2) {
+			arr[k] = R[j];
+			j++;
+			k++;
 		}
 	}
 	
+	void mergeSort(int arr[], int l, int r) {
+		if (l < r) {
+			// same as (l+r)/2 but avoids overflow for large l
+			int m = l + (r - l) / 2;
+			
+			//sort first and second halves
+			mergeSort(arr, l, m);
+			mergeSort(arr, m+1, r);
+			merge(arr, l, m, r);
+			
+		}
+	}
+	
+	// returns last bar swapped
+	private int bubbleSort(int sortUntilBar) {
+		int sortUntil = bars.size();
+		if (sortUntilBar > 0)
+			sortUntil = sortUntilBar;
+		int last_bar_swapped = 0;
+		for (int i = 1; i < sortUntil; i++) {
+			colorBar(Color.red, i);
+			bars.get(i).resetColor();
+			colorBar(Color.red, i - 1);
+			bars.get(i - 1).resetColor();
+			if (bars.get(i - 1).getHeight() > bars.get(i).getHeight()) {
+				colorBar(Color.red, i, false);
+				colorBar(Color.red, i - 1, false);
+				swapBars(i, i - 1);
+				last_bar_swapped = i;
+			}
+			resetBarColors();
+		}
+		return last_bar_swapped;
+	}
+
+	private int insertionSort(int sortUntil) {
+		int size = bars.size();
+		if (sortUntil > 0)
+			size = sortUntil;
+		int last = 0;
+		for (int i = 1; i < size; i++) {
+			int j = i;
+			while (j > 0) {
+				colorBar(Color.cyan, j - 1);
+				if (bars.get(j - 1).getHeight() > bars.get(j).getHeight()) {
+					swapBars(j, j - 1);
+					last = j;
+				}
+				resetBarColors();
+				j--;
+			}
+		}
+		return last;
+	}
+	
 	private void selectionSort() {
-		int min = 0;
-		for (int i = 0; i < bars.size(); i++) {
-			colorizeBar(Color.green, i);
-			min = i;
-			for (int j = i + 1; j < bars.size(); j++) {
-				colorizeBar(Color.red, j);
-				colorizeBar(Color.red, min);
+		int limit = bars.size();
+		for (int i = 0; i < limit - 1; i++) {
+			int min = i;
+			if (min > 0)
+				colorBar(Color.green, min - 1); // Colorize last least bar
+			for (int j = i + 1; j < limit; j++) {
+				colorBar(Color.red, j);
+				colorBar(Color.white, j, false);
+				colorBar(Color.red, min);
 				if (bars.get(j).getHeight() < bars.get(min).getHeight()) {
-					colorizeBar(Color.cyan, j);
-					colorizeBar(Color.white, min);
-					swapBars(min, j);
+					colorBar(Color.white, min, false);
 					min = j;
+					colorBar(Color.cyan, min, false);
 				}
 				else {
-					colorizeBar(Color.cyan, j);
-					colorizeBar(Color.white, j);
+					colorBar(Color.white, j, false);
+					colorBar(Color.cyan, min, false);
+
+
 				}
 			}
-			resetAllBarColors();
+			swapBars(i, min);
+			resetBarColors();
 		}
 	}
 	
 	private void swapBars(int x, int y) {
-		//Color oldColorX = bars.get(x).getColor();
-		//Color oldColorY = bars.get(y).getColor();
-		colorizeBar(Color.red, x);
-		colorizeBar(Color.red, y);
+		Color oldColorX = bars.get(x).getColor();
+		Color oldColorY = bars.get(y).getColor();
+		colorBars(Color.red, x, y);
 		Collections.swap(bars, x, y);
 		repaint();
 		sleep(delay);
-		colorizeBars(Color.white, x, y);
-		//colorizeBar(Color.white, y);
+		colorBar(oldColorX, x, false);
+		colorBar(oldColorY, y, false);
+	}
+	private void colorBar(Color color, int index, Boolean enableDelay) {
+		bars.get(index).setColor(color);
+		repaint();
+		if (enableDelay)
+			sleep(delay);
 	}
 	
-	private void colorizeBars(Color color, Bar... bars) {
+	private void colorBars(Color color, Bar... bars) {
 		for (Bar bar : bars) {
 			bar.setColor(color);
 		}
@@ -162,13 +262,13 @@ public class BarComponent extends JComponent implements Runnable {
 		sleep(delay);		
 	}
 	
-	private void colorizeBar(Color color, Bar bar) {
+	private void colorBar(Color color, Bar bar) {
 		bar.setColor(color);
 		repaint();
 		sleep(delay);
 	}
 	
-	private void colorizeBars(Color color, int... barIndexes) {
+	private void colorBars(Color color, int... barIndexes) {
 		for (int index : barIndexes) {
 			bars.get(index).setColor(color);
 		}
@@ -176,8 +276,8 @@ public class BarComponent extends JComponent implements Runnable {
 		sleep(delay);
 	}
 	
-	private void colorizeBar(Color color, int barIndex) {
-		colorizeBar(color, bars.get(barIndex));
+	private void colorBar(Color color, int barIndex) {
+		colorBar(color, bars.get(barIndex));
 	}
 	
 	private void sleep(double time) {
@@ -199,50 +299,49 @@ public class BarComponent extends JComponent implements Runnable {
 		}
 		return true;
 	}
-
-	private void resetAllBarColors() {
+	
+	private void resetBarColors() {
 		for (Bar bar : bars)
 			bar.resetColor();
 	}
 	
-	private void checkBarsAndSwap(int iteration) {
-		Bar currentBar = bars.get(iteration);
-		Bar nextBar = bars.get(iteration + 1);
-		currentBar.setColor(Color.green);
-		if (currentBar.getHeight() > nextBar.getHeight()) {
-			nextBar.setColor(Color.red);
-			Collections.swap(bars, iteration,  iteration + 1);
-		}
-	}
-	
 	private void markBarsCompleted() {
-		for (Bar bar : bars) {
-			bar.setColor(Color.green);
-			repaint();
+		int i = 0;
+		for (; i < bars.size() - 1; i++) {
+			colorBar(Color.green, i, false);
+			colorBar(Color.red, i + 1);
 		}
+		colorBar(Color.green, i, false);
 	}
 	
 	@Override
 	protected void paintComponent(Graphics g) {
 		Graphics2D g2 = (Graphics2D) g;
-		super.paintComponent(g2);
-		if (bars.size() <= 0) return;
 		g2.setColor(Color.BLACK);
 		g2.fillRect(0, 0, getPreferredSize().width, getPreferredSize().height);
-		double x = 0, margin = BAR_MARGIN;
-		for (int i = 0; i < arraySize; i++) {
+		super.paintComponent(g2);
+		int barCount = bars.size();
+		if (barCount <= 0) return;
+		double width = getWidth();
+		double height = getHeight();
+		double barWidth = (width - (barCount - 1)) / (double)barCount;
+		if (width <= (barCount-1)) barWidth = 0.0; // ?
+		double barStep = barWidth + 1.0;
+		if (Math.abs(barWidth - 1.0) < 0.1 && Math.abs(barStep - 2.0) < 0.1) {
+			barWidth = 2;
+			barStep = 2;
+		}
+		for (int i = 0; i < barCount; ++i) {
 			Bar bar = bars.get(i);
-			Color color = bars.get(i).getColor();
-			double width = bar.getWidth();
-			double height = bar.getHeight();
-			double y = getPreferredSize().height - height;
+			double x = i * barStep;
+			double y = height - bar.getHeight();
+			Color color = bar.getColor();
 			g2.setColor(color);
-			Rectangle2D rectBar = new Rectangle2D.Double(x, y, width, height);
+			Rectangle2D rectBar =
+					new Rectangle2D.Double(x, y,
+					Math.max(1, (((i+1)*barStep) - (i*barStep)) - (barStep - barWidth)),
+					bar.getHeight());
 			g2.fill(rectBar);
-			//g.fillRect(x, y, width, height);
-			if (width <= margin)
-				margin = 0;
-			x += width + (margin / 2);
 		}
 	}
 }
