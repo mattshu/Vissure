@@ -17,6 +17,9 @@ import javax.swing.JSlider;
 import javax.swing.JLabel;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+import javax.swing.JList;
+import javax.swing.JComboBox;
+import javax.swing.SwingConstants;
 
 public class MainWindow extends JFrame {
 
@@ -108,7 +111,7 @@ public class MainWindow extends JFrame {
 		});
 		panelLeft.add(barComponent);
 		JButton btnGenerate = new JButton("Generate");
-		btnGenerate.setBounds(10, 226, 102, 23);
+		btnGenerate.setBounds(10, 186, 102, 23);
 		btnGenerate.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				barComponent.generateBars();
@@ -140,10 +143,10 @@ public class MainWindow extends JFrame {
 		});
 		panelRight.add(btnRun);
 		JLabel lblDelay = new JLabel("Delay:");
-		lblDelay.setBounds(20, 110, 46, 14);
+		lblDelay.setBounds(12, 67, 46, 14);
 		panelRight.add(lblDelay);
 		JLabel lblDelayText = new JLabel("600ms"); // TODO hard coded
-		lblDelayText.setBounds(94, 110, 75, 14);
+		lblDelayText.setBounds(10, 103, 75, 14);
 		panelRight.add(lblDelayText);
 		JSlider sliderDelay = new JSlider();
 		sliderDelay.setBounds(10, 79, 220, 26);
@@ -160,13 +163,13 @@ public class MainWindow extends JFrame {
 		});
 		panelRight.add(sliderDelay);
 		JLabel lblArraySize = new JLabel("Array size:");
-		lblArraySize.setBounds(20, 297, 64, 14);
+		lblArraySize.setBounds(20, 257, 64, 14);
 		panelRight.add(lblArraySize);
 		JLabel lblArraySizeText = new JLabel(String.valueOf(BarComponent.DEFAULT_ARRAY_SIZE));
-		lblArraySizeText.setBounds(94, 297, 46, 14);
+		lblArraySizeText.setBounds(94, 257, 46, 14);
 		panelRight.add(lblArraySizeText);
 		JSlider sliderArraySize = new JSlider();
-		sliderArraySize.setBounds(10, 260, 220, 26);
+		sliderArraySize.setBounds(10, 220, 220, 26);
 		sliderArraySize.setMinimum(2);
 		sliderArraySize.setMaximum(250);
 		sliderArraySize.setValue(BarComponent.DEFAULT_ARRAY_SIZE);
@@ -178,6 +181,15 @@ public class MainWindow extends JFrame {
 			}
 		});
 		panelRight.add(sliderArraySize);
+		
+		JComboBox cbxAlgorithms = new JComboBox();
+		cbxAlgorithms.setBounds(94, 149, 134, 25);
+		panelRight.add(cbxAlgorithms);
+		
+		JLabel lblAlgorithm = new JLabel("Algorithm:");
+		lblAlgorithm.setHorizontalAlignment(SwingConstants.LEFT);
+		lblAlgorithm.setBounds(20, 153, 67, 16);
+		panelRight.add(lblAlgorithm);
 		// Initialize bars
 		barComponent.generateBars();
 	}
